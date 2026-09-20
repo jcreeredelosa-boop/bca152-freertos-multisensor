@@ -1,27 +1,18 @@
 {
   "version": 1,
-  "author": "JC Ree Redelosa",
+  "author": "Student",
   "editor": "wokwi",
   "parts": [
-    {
-      "type": "wokwi-esp32-devkit-v1",
-      "id": "esp",
-      "top": 0,
-      "left": 0,
-      "attrs": {}
-    },
-    {
-      "type": "wokwi-dht22",
-      "id": "dht1",
-      "top": 0,
-      "left": 300,
-      "attrs": {}
-    }
+    { "type": "board-esp32-devkit-v1", "id": "esp", "top": 0, "left": 0, "attrs": {} },
+    { "type": "wokwi-dht22", "id": "dht", "top": -100, "left": 150, "attrs": {} },
+    { "type": "wokwi-photoresistor-sensor", "id": "ldr", "top": 100, "left": 150, "attrs": {} },
+    { "type": "wokwi-pir-motion-sensor", "id": "pir", "top": -100, "left": 250, "attrs": {} },
+    { "type": "wokwi-ky-040", "id": "encoder", "top": 100, "left": 250, "attrs": {} },
+    { "type": "wokwi-ssd1306", "id": "oled", "top": 200, "left": 150, "attrs": {} },
+    { "type": "wokwi-buzzer", "id": "buzzer", "top": 200, "left": 0, "attrs": {} }
   ],
   "connections": [
-    [ "dht1:VCC", "esp:3V3", "red", [ "h0" ] ],
-    [ "dht1:GND", "esp:GND.1", "black", [ "h0" ] ],
-    [ "dht1:SDA", "esp:GPIO4", "green", [ "h0" ] ]
-  ],
-  "dependencies": {}
+    [ "esp:TX0", "$serialMonitor:RX", "", [] ],
+    [ "esp:RX0", "$serialMonitor:TX", "", [] ]
+  ]
 }
