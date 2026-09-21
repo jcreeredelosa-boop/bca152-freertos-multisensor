@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 720" font-family="Segoe UI, Arial, sans-serif">
+  <rect width="900" height="720" fill="#ffffff"/>
+  <defs>
+    <marker id="arr2" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#1976d2"/>
+    </marker>
+    <marker id="arrD" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#e65100"/>
+    </marker>
+  </defs>
+
+  <text x="450" y="34" text-anchor="middle" font-size="22" font-weight="bold" fill="#222">FreeRTOS Task Communication</text>
+  <text x="450" y="58" text-anchor="middle" font-size="13" fill="#666">Solid arrows = queues · Dashed arrows = event group bits</text>
+
+  <!-- SensorTask -->
+  <rect x="60" y="100" width="180" height="70" rx="10" fill="#e3f2fd" stroke="#1976d2" stroke-width="2"/>
+  <text x="150" y="130" text-anchor="middle" font-size="15" font-weight="bold" fill="#0d47a1">SensorTask</text>
+  <text x="150" y="150" text-anchor="middle" font-size="11" fill="#555">prio 2 · 2 s periodic</text>
+
+  <!-- DisplayTask -->
+  <rect x="600" y="100" width="180" height="70" rx="10" fill="#e8f5e9" stroke="#388e3c" stroke-width="2"/>
+  <text x="690" y="130" text-anchor="middle" font-size="15" font-weight="bold" fill="#1b5e20">DisplayTask</text>
+  <text x="690" y="150" text-anchor="middle" font-size="11" fill="#555">prio 1 · owns OLED</text>
+
+  <!-- AlarmTask -->
+  <rect x="600" y="260" width="180" height="70" rx="10" fill="#e8f5e9" stroke="#388e3c" stroke-width="2"/>
+  <text x="690" y="290" text-anchor="middle" font-size="15" font-weight="bold" fill="#1b5e20">AlarmTask</text>
+  <text x="690" y="310" text-anchor="middle" font-size="11" fill="#555">prio 2 · buzzer</text>
+
+  <!-- InputTask -->
+  <rect x="60" y="260" width="180" height="70" rx="10" fill="#e3f2fd" stroke="#1976d2" stroke-width="2"/>
+  <text x="150" y="290" text-anchor="middle" font-size="15" font-weight="bold" fill="#0d47a1">InputTask</text>
+  <text x="150" y="310" text-anchor="middle" font-size="11" fill="#555">prio 3 · encoder</text>
+
+  <!-- MotionTask -->
+  <rect x="60" y="420" width="180" height="70" rx="10" fill="#e3f2fd" stroke="#1976d2" stroke-width="2"/>
+  <text x="150" y="450" text-anchor="middle" font-size="15" font-weight="bold" fill="#0d47a1">MotionTask</text>
+  <text x="150" y="470" text-anchor="middle" font-size="11" fill="#555">prio 3 · 50 ms</text>
+
+  <!-- StateTask -->
+  <rect x="360" y="420" width="180" height="70" rx="10" fill="#e8f5e9" stroke="#388e3c" stroke-width="2"/>
+  <text x="450" y="450" text-anchor="middle" font-size="15" font-weight="bold" fill="#1b5e20">StateTask</text>
+  <text x="450" y="470" text-anchor="middle" font-size="11" fill="#555">prio 2 · state machine</text>
+
+  <!-- Event group box -->
+  <rect x="600" y="420" width="180" height="70" rx="10" fill="#fff3e0" stroke="#e65100" stroke-width="2"/>
+  <text x="690" y="446" text-anchor="middle" font-size="14" font-weight="bold" fill="#e65100">Event Group</text>
+  <text x="690" y="464" text-anchor="middle" font-size="11" fill="#555">EVENT_ACTIVE · EVENT_MOTION</text>
+  <text x="690" y="479" text-anchor="middle" font-size="11" fill="#555">EVENT_ALARM</text>
+
+  <!-- Serial mutex -->
+  <rect x="330" y="560" width="240" height="70" rx="10" fill="#f3e5f5" stroke="#8e24aa" stroke-width="2"/>
+  <text x="450" y="588" text-anchor="middle" font-size="14" font-weight="bold" fill="#4a148c">serialMutex</text>
+  <text x="450" y="608" text-anchor="middle" font-size="11" fill="#555">protects safe_print() / vprintf</text>
+
+  <!-- Queues -->
+  <!-- sensorQueue: SensorTask -> DisplayTask -->
+  <path d="M240 120 L595 120" stroke="#1976d2" stroke-width="2" fill="none" marker-end="url(#arr2)"/>
+  <text x="420" y="112" text-anchor="middle" font-size="12" fill="#0d47a1" font-weight="bold">sensorQueue (SensorData, len 5)</text>
+
+  <!-- alarmQueue: SensorTask -> AlarmTask -->
+  <path d="M240 155 C 400 155, 400 280, 595 290" stroke="#1976d2" stroke-width="2" fill="none" marker-end="url(#arr2)"/>
+  <text x="420" y="222" text-anchor="middle" font-size="12" fill="#0d47a1" font-weight="bold">alarmQueue (SensorData, len 5)</text>
+
+  <!-- modeQueue: InputTask -> DisplayTask -->
+  <path d="M240 280 C 400 280, 400 170, 595 160" stroke="#1976d2" stroke-width="2" fill="none" marker-end="url(#arr2)"/>
+  <text x="290" y="235" text-anchor="middle" font-size="12" fill="#0d47a1" font-weight="bold">modeQueue (len 1)</text>
+
+  <!-- MotionTask -> Event Group (dashed) -->
+  <path d="M240 460 L595 460" stroke="#e65100" stroke-width="2" fill="none" stroke-dasharray="6,4" marker-end="url(#arrD)"/>
+  <text x="420" y="452" text-anchor="middle" font-size="12" fill="#e65100" font-weight="bold">set/clear EVENT_MOTION</text>
+
+  <!-- StateTask <-> Event Group (dashed) -->
+  <path d="M540 455 L595 455" stroke="#e65100" stroke-width="2" fill="none" stroke-dasharray="6,4" marker-end="url(#arrD)"/>
+  <text x="570" y="480" text-anchor="middle" font-size="11" fill="#e65100">watch</text>
+
+  <!-- All tasks -> serialMutex (dashed) -->
+  <path d="M150 490 C 150 560, 300 595, 330 595" stroke="#8e24aa" stroke-width="1.5" fill="none" stroke-dasharray="4,4"/>
+  <path d="M690 490 C 690 560, 600 595, 570 595" stroke="#8e24aa" stroke-width="1.5" fill="none" stroke-dasharray="4,4"/>
+  <text x="450" y="650" text-anchor="middle" font-size="12" fill="#4a148c" font-weight="bold">All tasks call safe_print() — serialized via serialMutex</text>
+
+  <!-- Peripherals labels -->
+  <text x="690" y="195" text-anchor="middle" font-size="11" fill="#666">→ SSD1306 OLED (I2C)</text>
+  <text x="690" y="355" text-anchor="middle" font-size="11" fill="#666">→ Buzzer (GPIO 26)</text>
+</svg>

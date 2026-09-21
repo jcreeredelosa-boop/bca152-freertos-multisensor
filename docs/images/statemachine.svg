@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 480" font-family="Segoe UI, Arial, sans-serif">
+  <rect width="900" height="480" fill="#ffffff"/>
+  <defs>
+    <marker id="arr3" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#333"/>
+    </marker>
+  </defs>
+
+  <text x="450" y="40" text-anchor="middle" font-size="22" font-weight="bold" fill="#222">System State Machine</text>
+  <text x="450" y="66" text-anchor="middle" font-size="13" fill="#666">ACTIVE ↔ INACTIVE transitions driven by motion events</text>
+
+  <!-- Start marker -->
+  <circle cx="80" cy="250" r="10" fill="#222"/>
+  <line x1="90" y1="250" x2="175" y2="250" stroke="#333" stroke-width="2" marker-end="url(#arr3)"/>
+
+  <!-- ACTIVE circle -->
+  <ellipse cx="290" cy="250" rx="115" ry="80" fill="#e8f5e9" stroke="#2e7d32" stroke-width="3"/>
+  <text x="290" y="240" text-anchor="middle" font-size="20" font-weight="bold" fill="#1b5e20">ACTIVE</text>
+  <text x="290" y="264" text-anchor="middle" font-size="11" fill="#555">OLED on · encoder active</text>
+  <text x="290" y="280" text-anchor="middle" font-size="11" fill="#555">alarm active</text>
+
+  <!-- INACTIVE circle -->
+  <ellipse cx="670" cy="250" rx="115" ry="80" fill="#ffebee" stroke="#c62828" stroke-width="3"/>
+  <text x="670" y="240" text-anchor="middle" font-size="20" font-weight="bold" fill="#b71c1c">INACTIVE</text>
+  <text x="670" y="264" text-anchor="middle" font-size="11" fill="#555">OLED: "SYSTEM INACTIVE"</text>
+  <text x="670" y="280" text-anchor="middle" font-size="11" fill="#555">motion still monitored</text>
+
+  <!-- Transition: ACTIVE -> INACTIVE (top arc) -->
+  <path d="M 370 200 Q 480 100 590 200" stroke="#333" stroke-width="2.5" fill="none" marker-end="url(#arr3)"/>
+  <text x="480" y="118" text-anchor="middle" font-size="13" font-weight="bold" fill="#333">inactivity timeout (15 s)</text>
+  <text x="480" y="135" text-anchor="middle" font-size="11" fill="#666">no motion for 15 s → EVENT_ACTIVE cleared</text>
+
+  <!-- Transition: INACTIVE -> ACTIVE (bottom arc) -->
+  <path d="M 590 300 Q 480 400 370 300" stroke="#333" stroke-width="2.5" fill="none" marker-end="url(#arr3)"/>
+  <text x="480" y="378" text-anchor="middle" font-size="13" font-weight="bold" fill="#333">motion detected</text>
+  <text x="480" y="395" text-anchor="middle" font-size="11" fill="#666">EVENT_MOTION set · lastMotionTick reset</text>
+
+  <!-- Self-loop on ACTIVE -->
+  <path d="M 200 195 Q 155 145 240 175" stroke="#666" stroke-width="1.8" fill="none" marker-end="url(#arr3)"/>
+  <text x="150" y="140" text-anchor="middle" font-size="11" fill="#666" font-style="italic">motion refreshes timer</text>
+
+  <!-- Legend -->
+  <rect x="60" y="420" width="780" height="40" rx="6" fill="#f5f5f5" stroke="#ddd"/>
+  <text x="80" y="445" font-size="11" fill="#444">State variables: lastMotionTick (TickType_t) · systemEvents (EventGroupHandle_t) with EVENT_ACTIVE and EVENT_MOTION bits</text>
+</svg>
