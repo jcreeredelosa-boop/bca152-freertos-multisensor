@@ -48,6 +48,6 @@ void input_task(void *pvParameters) {
             lastAB = ab;
         }
 
-        vTaskDelay(pdMS_TO_TICKS(5));
+       vTaskDelay(1);   // 1 tick = 10 ms at 100 Hz. Guaranteed to actually block.
     }
 }

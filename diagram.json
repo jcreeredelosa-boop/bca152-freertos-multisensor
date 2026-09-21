@@ -9,9 +9,16 @@
     { "type": "wokwi-pir-motion-sensor", "id": "pir", "top": 100, "left": 220, "attrs": {} },
     { "type": "wokwi-ky-040", "id": "enc", "top": 200, "left": -200, "attrs": {} },
     { "type": "wokwi-ssd1306", "id": "oled", "top": -150, "left": -60, "attrs": {} },
-    { "type": "wokwi-buzzer", "id": "buz", "top": 230, "left": 100, "attrs": { "volume": "0.1" } }
+    { "type": "wokwi-buzzer", "id": "buz", "top": 230, "left": 100, "attrs": { "volume": "0.1" }},
+   {"type": "wokwi-resistor", "id": "r1", "top": -100, "left": 200, "attrs": { "value": "10000" } } 
   ],
   "connections": [
+    [ "esp:TX", "$serialMonitor:RX", "", [] ],
+    [ "esp:RX", "$serialMonitor:TX", "", [] ],
+
+    [ "esp:GPIO4", "r1:1", "green", [ "v0" ] ],
+    [ "esp:3V3",   "r1:2", "red",   [ "v0" ] ],
+
     [ "esp:GPIO4",  "dht:SDA", "green", [ "v0" ] ],
     [ "esp:3V3",    "dht:VCC", "red",   [ "v0" ] ],
     [ "esp:GND.1",  "dht:GND", "black", [ "v0" ] ],
