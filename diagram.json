@@ -5,12 +5,13 @@
   "parts": [
     { "type": "board-esp32-devkit-c-v4", "id": "esp", "top": 0, "left": 0, "attrs": {} },
     { "type": "wokwi-dht22", "id": "dht", "top": -60, "left": 200, "attrs": {} },
-    { "type": "wokwi-photoresistor-sensor", "id": "ldr", "top": -60, "left": -180, "attrs": {} },
-    { "type": "wokwi-slide-switch", "id": "pir", "top": 100, "left": 220, "attrs": {} },
+    { "type": "wokwi-photoresistor-sensor", "id": "ldr", "top": -80, "left": -240, "attrs": {} },
+    { "type": "wokwi-resistor", "id": "rldr", "top": 40, "left": -240, "attrs": { "value": "10000" } },
+    { "type": "wokwi-slide-switch", "id": "motion", "top": 100, "left": 220, "attrs": {} },
     { "type": "wokwi-ky-040", "id": "enc", "top": 200, "left": -200, "attrs": {} },
     { "type": "wokwi-ssd1306", "id": "oled", "top": -150, "left": -60, "attrs": {} },
-    { "type": "wokwi-buzzer", "id": "buz", "top": 230, "left": 100, "attrs": { "volume": "0.1" }},
-   {"type": "wokwi-resistor", "id": "r1", "top": -100, "left": 200, "attrs": { "value": "10000" } } 
+    { "type": "wokwi-buzzer", "id": "buz", "top": 230, "left": 100, "attrs": { "volume": "0.1" } },
+    { "type": "wokwi-resistor", "id": "r1", "top": -100, "left": 200, "attrs": { "value": "10000" } }
   ],
   "connections": [
     [ "esp:TX", "$serialMonitor:RX", "", [] ],
@@ -26,10 +27,11 @@
     [ "esp:GPIO34", "ldr:AO",  "green", [ "v0" ] ],
     [ "esp:3V3",    "ldr:VCC", "red",   [ "v0" ] ],
     [ "esp:GND.1",  "ldr:GND", "black", [ "v0" ] ],
+    [ "esp:GPIO34", "rldr:1",  "green", [ "v0" ] ],
+    [ "esp:GND.1",  "rldr:2",  "black", [ "v0" ] ],
 
-    [ "esp:GPIO27", "pir:1", "green", [ "v0" ] ],
-    [ "esp:GND.1",  "pir:2.l", "black", [ "v0" ] ],
-   
+    [ "esp:GPIO27", "motion:1", "green", [ "v0" ] ],
+    [ "esp:GND.1",  "motion:2", "black", [ "v0" ] ],
 
     [ "esp:GPIO32", "enc:CLK", "green", [ "v0" ] ],
     [ "esp:GPIO33", "enc:DT",  "blue",  [ "v0" ] ],

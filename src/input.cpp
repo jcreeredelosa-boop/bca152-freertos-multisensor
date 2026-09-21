@@ -1,53 +1,44 @@
 #include "input.h"
 #include "rtos_objects.h"
-#include "driver/gpio.h"
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
 static const char *TAG = "INPUT";
-#define ENC_A  GPIO_NUM_32
-#define ENC_B  GPIO_NUM_33
-#define ENC_SW GPIO_NUM_25
 
-static DisplayMode currentMode = DisplayMode::TEMPERATURE;
-static int lastAB = 0;
+// Simulated encoder pattern. Wokwi's KY-040 rotary UI does not always expose
+// CW/CCW controls under the ESP-IDF extension, so mode changes are generated
+// in firmware on a fixed schedule. The modeQueue publication path and the
+// DisplayTask consumer logic are unchanged.
+#define MODE_INTERVAL_MS 5000   // advance one page every 5 s
 
 void input_init() {
-    gpio_set_direction(ENC_A,  GPIO_MODE_INPUT);
-    gpio_set_direction(ENC_B,  GPIO_MODE_INPUT);
-    gpio_set_direction(ENC_SW, GPIO_MODE_INPUT);
-    gpio_set_pull_mode(ENC_A,  GPIO_PULLUP_ONLY);
-    gpio_set_pull_mode(ENC_B,  GPIO_PULLUP_ONLY);
-    gpio_set_pull_mode(ENC_SW, GPIO_PULLUP_ONLY);
-    lastAB = (gpio_get_level(ENC_A) << 1) | gpio_get_level(ENC_B);
+    // No GPIO setup — input is simulated
 }
 
 void input_task(void *pvParameters) {
-    // Publish initial mode
-    xQueueOverwrite(modeQueue, &currentMode);
+    static DisplayMode mode = DisplayMode::TEMPERATURE;
+
+    // Publish initial mode so the display starts on Temperature
+    xQueueOverwrite(modeQueue, &mode);
+    ESP_LOGI(TAG, "InputTask started (simulated mode cycling, %d ms period)", MODE_INTERVAL_MS);
+
+    TickType_t lastWake = xTaskGetTickCount();
+    int cycle = 0;
 
     for (;;) {
-        int a = gpio_get_level(ENC_A);
-        int b = gpio_get_level(ENC_B);
-        int ab = (a << 1) | b;
+        vTaskDelayUntil(&lastWake, pdMS_TO_TICKS(MODE_INTERVAL_MS));
 
-        if (ab != lastAB) {
-            // Standard quadrature decode
-            if ((lastAB == 0b00 && ab == 0b01) ||
-                (lastAB == 0b01 && ab == 0b11) ||
-                (lastAB == 0b11 && ab == 0b10) ||
-                (lastAB == 0b10 && ab == 0b00)) {
-                currentMode = nextDisplayMode(currentMode);
-                ESP_LOGI(TAG, "CW -> mode %d", (int)currentMode);
-            } else {
-                currentMode = previousDisplayMode(currentMode);
-                ESP_LOGI(TAG, "CCW -> mode %d", (int)currentMode);
-            }
-            xQueueOverwrite(modeQueue, &currentMode);
-            lastAB = ab;
+        // Alternate CW / CCW to demonstrate both transitions.
+        // Every 4th cycle advance (CW); otherwise retreat (CCW).
+        cycle++;
+        if ((cycle % 4) == 0) {
+            mode = previousDisplayMode(mode);
+            ESP_LOGI(TAG, "CCW -> mode %d", (int)mode);
+        } else {
+            mode = nextDisplayMode(mode);
+            ESP_LOGI(TAG, "CW -> mode %d", (int)mode);
         }
-
-       vTaskDelay(1);   // 1 tick = 10 ms at 100 Hz. Guaranteed to actually block.
+        xQueueOverwrite(modeQueue, &mode);
     }
 }

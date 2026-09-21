@@ -80,7 +80,7 @@ This project was built as Laboratory Activity 1 for **BCA152 Microcontrollers** 
 
 ## System Architecture
 
-![System Architecture](docs/images/system-architecture.png)
+![System Architecture](docs/images/system-architecture.svg)
 *Figure 1 — Layered software architecture: `main.cpp` initializes hardware and spawns tasks; `rtos_objects.cpp` centralizes FreeRTOS primitives; each functional module owns one task and one peripheral.*
 
 The architecture follows a strict separation:
@@ -262,7 +262,7 @@ bca152-freertos-multisensor/
 ### Clone
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/bca152-freertos-multisensor.git
+git clone  https://github.com/jcreeredelosa-boop/bca152-freertos-multisensor.git
 cd bca152-freertos-multisensor
 
 Building the Project
@@ -345,6 +345,8 @@ Without resetting lastMotionTick = now on the INACTIVE → ACTIVE transition, th
 
 Limitations
 DHT22 is simulated. Wokwi's DHT22 model does not respond reliably to ESP-IDF bit-bang drivers (both a custom bit-bang and the esp-idf-lib/dht component fail with a "phase B" initialization error). Sensor values are generated in firmware at the dht_read() boundary. The SensorTask → queue → AlarmTask → DisplayTask data path is fully real; only the sensor hardware read is substituted. On physical hardware, the body of dht_read() would be replaced with a real driver call.
+
+Wokwi's KY-040 rotary encoder UI does not expose reliable CW/CCW controls under the ESP-IDF VS Code extension, and Wokwi's photoresistor module output impedance is incompatible with the ESP32 ADC input stage. Both InputTask (mode cycling) and SensorTask's LDR read were substituted with firmware-generated values at their respective module boundaries. The modeQueue, sensorQueue, and downstream consumer logic (DisplayTask rendering, navigation state, page transitions) are unchanged. On physical hardware, InputTask would read the KY-040 GPIO pins and LDR would read the ADC directly.
 
 Motion input is simulated. Wokwi's PIR and pushbutton models did not drive GPIO reliably under ESP-IDF. MotionTask generates a firmware-based motion pattern (3 s motion + 27 s idle, repeating). The event group signaling, lastMotionTick refresh, and state transitions are unchanged.
 
