@@ -12,15 +12,16 @@ void state_task(void *pvParameters) {
     xEventGroupSetBits(systemEvents, EVENT_ACTIVE);
 
     for (;;) {
-        TickType_t now  = xTaskGetTickCount();
-        bool timedOut   = (now - lastMotionTick) > pdMS_TO_TICKS(INACTIVITY_TIMEOUT_MS);
-        bool motion     = (xEventGroupGetBits(systemEvents) & EVENT_MOTION) != 0;
+        TickType_t now = xTaskGetTickCount();
+        bool timedOut  = (now - lastMotionTick) > pdMS_TO_TICKS(INACTIVITY_TIMEOUT_MS);
+        bool motion    = (xEventGroupGetBits(systemEvents) & EVENT_MOTION) != 0;
 
         SystemState next = evaluateSystemState(state, motion, timedOut);
         if (next != state) {
             state = next;
             if (state == SystemState::ACTIVE) {
                 xEventGroupSetBits(systemEvents, EVENT_ACTIVE);
+                lastMotionTick = now;  // <-- reset timer, prevents flip-flop
                 ESP_LOGI(TAG, "-> ACTIVE");
             } else {
                 xEventGroupClearBits(systemEvents, EVENT_ACTIVE);

@@ -6,7 +6,7 @@
     { "type": "board-esp32-devkit-c-v4", "id": "esp", "top": 0, "left": 0, "attrs": {} },
     { "type": "wokwi-dht22", "id": "dht", "top": -60, "left": 200, "attrs": {} },
     { "type": "wokwi-photoresistor-sensor", "id": "ldr", "top": -60, "left": -180, "attrs": {} },
-    { "type": "wokwi-pir-motion-sensor", "id": "pir", "top": 100, "left": 220, "attrs": {} },
+    { "type": "wokwi-slide-switch", "id": "pir", "top": 100, "left": 220, "attrs": {} },
     { "type": "wokwi-ky-040", "id": "enc", "top": 200, "left": -200, "attrs": {} },
     { "type": "wokwi-ssd1306", "id": "oled", "top": -150, "left": -60, "attrs": {} },
     { "type": "wokwi-buzzer", "id": "buz", "top": 230, "left": 100, "attrs": { "volume": "0.1" }},
@@ -27,9 +27,9 @@
     [ "esp:3V3",    "ldr:VCC", "red",   [ "v0" ] ],
     [ "esp:GND.1",  "ldr:GND", "black", [ "v0" ] ],
 
-    [ "esp:GPIO27", "pir:OUT", "green", [ "v0" ] ],
-    [ "esp:3V3",    "pir:VCC", "red",   [ "v0" ] ],
-    [ "esp:GND.1",  "pir:GND", "black", [ "v0" ] ],
+    [ "esp:GPIO27", "pir:1", "green", [ "v0" ] ],
+    [ "esp:GND.1",  "pir:2.l", "black", [ "v0" ] ],
+   
 
     [ "esp:GPIO32", "enc:CLK", "green", [ "v0" ] ],
     [ "esp:GPIO33", "enc:DT",  "blue",  [ "v0" ] ],
