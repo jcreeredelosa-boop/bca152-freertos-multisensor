@@ -1,17 +1,33 @@
-#include <stdio.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "esp_log.h"
+
+#include "rtos_objects.h"
+#include "sensors.h"
+#include "display.h"
+#include "input.h"
+#include "alarm.h"
+#include "motion.h"
+#include "system_state.h"
+
+static const char *TAG = "MAIN";
 
 extern "C" void app_main(void) {
-    printf("BCA152 FreeRTOS Multisensor\n");
-    printf("System starting...\n");
+    ESP_LOGI(TAG, "BCA152 FreeRTOS Multisensor");
+    ESP_LOGI(TAG, "System starting...");
 
-    // TODO: Create Queues, Mutexes, Event Groups
-    
-    // TODO: Create Tasks (SensorTask, DisplayTask, etc.)
+    rtos_objects_init();
+    sensors_init();
+    display_init();
+    input_init();
+    alarm_init();
+    motion_init();
 
-    while (true) {
-        // Main task can block or do housekeeping
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
-    }
+    // Priorities justified in README / report
+    xTaskCreate(sensor_task, "SensorTask",  4096, nullptr, 2, nullptr);
+    xTaskCreate(display_task,"DisplayTask", 4096, nullptr, 1, nullptr);
+    xTaskCreate(input_task,  "InputTask",   3072, nullptr, 3, nullptr);
+    xTaskCreate(motion_task, "MotionTask",  3072, nullptr, 3, nullptr);
+    xTaskCreate(alarm_task,  "AlarmTask",   3072, nullptr, 2, nullptr);
+    xTaskCreate(state_task,  "StateTask",   3072, nullptr, 2, nullptr);
 }

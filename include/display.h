@@ -1,3 +1,3 @@
 #pragma once
-
-// display.h header file
+void display_init();
+void display_task(void *pvParameters);

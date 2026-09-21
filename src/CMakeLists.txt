@@ -1,2 +1,15 @@
-idf_component_register(SRCS "main.cpp"
-                    INCLUDE_DIRS ".")
+idf_component_register(
+    SRCS
+        "main.cpp"
+        "rtos_objects.cpp"
+        "sensors.cpp"
+        "display.cpp"
+        "input.cpp"
+        "alarm.cpp"
+        "motion.cpp"
+        "system_state.cpp"
+    INCLUDE_DIRS
+        "../include"
+    REQUIRES
+        esp_adc
+)

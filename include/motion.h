@@ -1,3 +1,3 @@
 #pragma once
-
-// motion.h header file
+void motion_init();
+void motion_task(void *pvParameters);

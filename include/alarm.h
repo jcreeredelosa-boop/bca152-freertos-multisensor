@@ -1,3 +1,3 @@
 #pragma once
-
-// alarm.h header file
+void alarm_init();
+void alarm_task(void *pvParameters);

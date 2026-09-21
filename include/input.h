@@ -1,3 +1,3 @@
 #pragma once
-
-// input.h header file
+void input_init();
+void input_task(void *pvParameters);
