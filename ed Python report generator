@@ -1,0 +1,12 @@
+[33m8ac9422[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m Add laboratory report PDF, README, screenshots, and input substitutions
+[33mf672e1a[m Add system architecture, FreeRTOS communication, and state machine diagrams
+[33m72d92f0[m Link Hackster.io publication in README
+[33mb4cc57e[m Static analysis: pio check passed with 14 low-severity findings; all interpreted
+[33mb359e34[m Working FreeRTOS multisensor: all functional tests passing
+[33mc157e26[m Working system: DHT simulated values, LDR real, all tasks running
+[33md1b7f4e[m Initialize ESP32 PlatformIO project with FreeRTOS multisensor architecture
+[33me132006[m Initialize ESP32 PlatformIO project
+[33m27e06f4[m Initialize ESP32 PlatformIO project
+[33m9cfb3a2[m Add ESP32 startup message
+[33m9e48c39[m Configure initial Wokwi simulation
+[33m05f4b52[m Initialize ESP32 ESP-IDF project
