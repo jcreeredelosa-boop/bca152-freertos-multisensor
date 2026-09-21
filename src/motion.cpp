@@ -41,7 +41,9 @@ void motion_task(void *pvParameters) {
                 ESP_LOGI(TAG, "Motion cleared");
             }
         }
+        
 
-        vTaskDelayUntil(&lastWake, pdMS_TO_TICKS(50));
+         vTaskDelayUntil(&lastWake, pdMS_TO_TICKS(50));  // FAULT EXPERIMENT 1
     }
 }
+    
