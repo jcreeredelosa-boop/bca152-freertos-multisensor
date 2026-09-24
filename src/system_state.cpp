@@ -21,7 +21,7 @@ void state_task(void *pvParameters) {
             state = next;
             if (state == SystemState::ACTIVE) {
                 xEventGroupSetBits(systemEvents, EVENT_ACTIVE);
-                lastMotionTick = now;  // <-- reset timer, prevents flip-flop
+                lastMotionTick = now;   // reset timeout to avoid flip-flop
                 ESP_LOGI(TAG, "-> ACTIVE");
             } else {
                 xEventGroupClearBits(systemEvents, EVENT_ACTIVE);

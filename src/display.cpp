@@ -7,15 +7,15 @@
 #include <cstring>
 #include <cstdio>
 
+static const char *TAG = "DISPLAY";
+
 #define I2C_PORT   I2C_NUM_0
 #define I2C_SDA    GPIO_NUM_21
 #define I2C_SCL    GPIO_NUM_22
 #define OLED_ADDR  0x3C
 
-static const char *TAG = "DISPLAY";
 static uint8_t fb[128 * 8];
 
-// --- 5x7 font for ASCII 32..90 (space..'Z') ---
 static const uint8_t FONT5X7[][5] = {
     {0x00,0x00,0x00,0x00,0x00},{0x00,0x00,0x5F,0x00,0x00},{0x00,0x07,0x00,0x07,0x00},
     {0x14,0x7F,0x14,0x7F,0x14},{0x24,0x2A,0x7F,0x2A,0x12},{0x23,0x13,0x08,0x64,0x62},
@@ -98,7 +98,7 @@ void display_init() {
     for (uint8_t c : init_cmds) oled_cmd(c);
     memset(fb, 0, sizeof(fb));
     oled_flush();
-    
+
     ESP_LOGI(TAG, "SSD1306 initialized on I2C addr 0x%02X", OLED_ADDR);
 }
 
@@ -118,9 +118,9 @@ void display_task(void *pvParameters) {
             mode = newMode;
         }
 
-        // If system is INACTIVE, blank display
         EventBits_t bits = xEventGroupGetBits(systemEvents);
         memset(fb, 0, sizeof(fb));
+
         if ((bits & EVENT_ACTIVE) == 0) {
             draw_string(0, 3, "SYSTEM INACTIVE");
             oled_flush();
