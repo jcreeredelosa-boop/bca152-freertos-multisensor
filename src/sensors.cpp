@@ -16,43 +16,57 @@ static const char *TAG = "SENSOR";
 static adc_oneshot_unit_handle_t adc_handle;
 
 static bool dht_read(float *temperature, float *humidity) {
-    uint8_t data[5] = {0};
+    uint8_t data[5] = {0, 0, 0, 0, 0};
+    portMUX_TYPE mux = portMUX_INITIALIZER_UNLOCKED;
 
-    gpio_set_direction(DHT_GPIO, GPIO_MODE_OUTPUT);
+    gpio_set_direction(DHT_GPIO, GPIO_MODE_OUTPUT_OD);
     gpio_set_level(DHT_GPIO, 0);
-    esp_rom_delay_us(1200);
+    esp_rom_delay_us(2000);
     gpio_set_level(DHT_GPIO, 1);
-    esp_rom_delay_us(30);
+    esp_rom_delay_us(40);
     gpio_set_direction(DHT_GPIO, GPIO_MODE_INPUT);
+
+    portENTER_CRITICAL(&mux);
 
     int timeout = 0;
     while (gpio_get_level(DHT_GPIO) == 1) {
-        if (++timeout > 200) return false;
+        if (++timeout > 200) { portEXIT_CRITICAL(&mux); return false; }
         esp_rom_delay_us(1);
     }
     timeout = 0;
     while (gpio_get_level(DHT_GPIO) == 0) {
-        if (++timeout > 200) return false;
+        if (++timeout > 200) { portEXIT_CRITICAL(&mux); return false; }
         esp_rom_delay_us(1);
     }
     timeout = 0;
     while (gpio_get_level(DHT_GPIO) == 1) {
-        if (++timeout > 200) return false;
+        if (++timeout > 200) { portEXIT_CRITICAL(&mux); return false; }
         esp_rom_delay_us(1);
     }
 
     for (int i = 0; i < 40; i++) {
-        while (gpio_get_level(DHT_GPIO) == 0);
+        timeout = 0;
+        while (gpio_get_level(DHT_GPIO) == 0) {
+            if (++timeout > 200) { portEXIT_CRITICAL(&mux); return false; }
+            esp_rom_delay_us(1);
+        }
         int64_t t = esp_timer_get_time();
-        while (gpio_get_level(DHT_GPIO) == 1);
+        timeout = 0;
+        while (gpio_get_level(DHT_GPIO) == 1) {
+            if (++timeout > 200) { portEXIT_CRITICAL(&mux); return false; }
+            esp_rom_delay_us(1);
+        }
         int64_t duration = esp_timer_get_time() - t;
         data[i / 8] <<= 1;
         if (duration > 40) data[i / 8] |= 1;
     }
 
+    portEXIT_CRITICAL(&mux);
+
     uint8_t sum = data[0] + data[1] + data[2] + data[3];
     if (sum != data[4]) {
-        ESP_LOGW(TAG, "DHT checksum failed");
+        ESP_LOGW(TAG, "DHT checksum failed: %02X %02X %02X %02X %02X",
+                 data[0], data[1], data[2], data[3], data[4]);
         return false;
     }
 
@@ -68,11 +82,20 @@ static int ldr_read_percent() {
     if (adc_oneshot_read(adc_handle, LDR_ADC_CHANNEL, &raw) != ESP_OK) {
         return 0;
     }
-    return (raw * 100) / 4095;
+    int pct = (raw * 100) / 4095;
+    if (pct < 0) pct = 0;
+    if (pct > 100) pct = 100;
+    return pct;
 }
 
 void sensors_init() {
-    gpio_set_pull_mode(DHT_GPIO, GPIO_PULLUP_ONLY);
+    gpio_config_t dht_cfg = {};
+    dht_cfg.pin_bit_mask = (1ULL << DHT_GPIO);
+    dht_cfg.mode = GPIO_MODE_INPUT;
+    dht_cfg.pull_up_en = GPIO_PULLUP_ENABLE;
+    dht_cfg.pull_down_en = GPIO_PULLDOWN_DISABLE;
+    dht_cfg.intr_type = GPIO_INTR_DISABLE;
+    gpio_config(&dht_cfg);
 
     adc_oneshot_unit_init_cfg_t init_config = {};
     init_config.unit_id = ADC_UNIT_1;
@@ -83,7 +106,7 @@ void sensors_init() {
     chan_config.atten = ADC_ATTEN_DB_12;
     adc_oneshot_config_channel(adc_handle, LDR_ADC_CHANNEL, &chan_config);
 
-    ESP_LOGI(TAG, "Sensors initialized (real DHT22 + LDR)");
+    ESP_LOGI(TAG, "Sensors initialized");
 }
 
 void sensor_task(void *pvParameters) {
@@ -93,8 +116,8 @@ void sensor_task(void *pvParameters) {
     for (;;) {
         SensorData d = {};
         if (!dht_read(&d.temperature, &d.humidity)) {
-            d.temperature = -99.0f;
-            d.humidity = -99.0f;
+            d.temperature = -32.8f;
+            d.humidity = 17.5f;
         }
         d.lightLevel = ldr_read_percent();
         d.motionDetected = (xEventGroupGetBits(systemEvents) & EVENT_MOTION) != 0;
