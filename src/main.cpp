@@ -34,7 +34,7 @@ void SensorTask(void *pvParameters)
 
         int raw = 0;
         adc_oneshot_read(adc1_handle, ADC_CHANNEL_0, &raw);
-        data.lightLevel = (raw * 100) / 4095;
+        data.lightLevel = 100 - ((raw * 100) / 4095);
 
         data.motionDetected = (xEventGroupGetBits(systemEvents) & EVENT_MOTION) != 0;
 
