@@ -26,11 +26,11 @@ An ESP32 room monitor built with ESP-IDF and FreeRTOS, simulated in Wokwi. It re
 
 ## Architecture
 
-![System Architecture](docs/images/system-architecture.png)
+![System Architecture](docs/images/system-architecture.svg)
 
 `main.cpp` handles hardware init and spawns the tasks. `rtos_objects.cpp` holds every queue, mutex, and event group in one place. Each module owns one task and one peripheral. Pure decision functions live in `logic.h` so they can be tested on the host.
 
-![FreeRTOS Task Communication](docs/images/freertos-communication.png)
+![FreeRTOS Task Communication](docs/images/freertos-communication.svg)
 
 ---
 
