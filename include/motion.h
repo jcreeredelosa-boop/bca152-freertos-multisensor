@@ -1,3 +1,4 @@
 #pragma once
-void motion_init(void);
-void motion_task(void *pvParameters);
+#include "motion_logic.h"
+
+void MotionTask(void *pvParameters);

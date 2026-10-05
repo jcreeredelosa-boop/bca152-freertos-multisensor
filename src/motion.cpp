@@ -1,44 +1,55 @@
 #include "motion.h"
+#include "system_events.h"
 #include "rtos_objects.h"
-#include "esp_log.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
 #include "driver/gpio.h"
+#include "freertos/task.h"
+#include <cstdio>
 
-static const char *TAG = "MOTION";
+#define PIR_PIN GPIO_NUM_26
+#define INACTIVITY_TIMEOUT_MS 15000
 
-#define MOTION_GPIO GPIO_NUM_27
-
-void motion_init(void) {
-    gpio_config_t cfg = {};
-    cfg.pin_bit_mask = (1ULL << MOTION_GPIO);
-    cfg.mode = GPIO_MODE_INPUT;
-    cfg.pull_up_en = GPIO_PULLUP_ENABLE;
-    cfg.pull_down_en = GPIO_PULLDOWN_DISABLE;
-    cfg.intr_type = GPIO_INTR_DISABLE;
-    gpio_config(&cfg);
-
-    lastMotionTick = xTaskGetTickCount();
-    ESP_LOGI(TAG, "Motion initialized on GPIO 27");
+static void configure_pir_gpio(void) {
+    gpio_config_t conf = {};
+    conf.pin_bit_mask = 1ULL << PIR_PIN;
+    conf.mode = GPIO_MODE_INPUT;
+    conf.pull_down_en = GPIO_PULLDOWN_ENABLE;
+    gpio_config(&conf);
 }
 
-void motion_task(void *pvParameters) {
-    bool lastDetected = false;
+void MotionTask(void *pvParameters) {
+    configure_pir_gpio();
+    TickType_t lastMotionTick = xTaskGetTickCount();
+    SystemState lastState = SystemState::ACTIVE;
+    xEventGroupSetBits(systemEvents, EVENT_ACTIVE);
 
-    for (;;) {
-        int level = gpio_get_level(MOTION_GPIO);
-        bool detected = (level == 0);
+    while (true) {
+        bool motionNow = gpio_get_level(PIR_PIN) == 1;
+        TickType_t now = xTaskGetTickCount();
 
-        if (detected && !lastDetected) {
-            lastMotionTick = xTaskGetTickCount();
+        if (motionNow) {
+            lastMotionTick = now;
             xEventGroupSetBits(systemEvents, EVENT_MOTION);
-            ESP_LOGI(TAG, "Motion detected");
-        } else if (!detected && lastDetected) {
+        } else {
             xEventGroupClearBits(systemEvents, EVENT_MOTION);
-            ESP_LOGI(TAG, "Motion cleared");
         }
 
-        lastDetected = detected;
-        vTaskDelay(pdMS_TO_TICKS(50));
+        uint32_t idleMs = (now - lastMotionTick) * portTICK_PERIOD_MS;
+        SystemState state = evaluateSystemState(motionNow, idleMs, INACTIVITY_TIMEOUT_MS);
+
+        if (state != lastState) {
+            xSemaphoreTake(serialMutex, portMAX_DELAY);
+            printf("[MotionTask] State changed to %s\n",
+                   state == SystemState::ACTIVE ? "ACTIVE" : "INACTIVE");
+            xSemaphoreGive(serialMutex);
+
+            if (state == SystemState::ACTIVE) {
+                xEventGroupSetBits(systemEvents, EVENT_ACTIVE);
+            } else {
+                xEventGroupClearBits(systemEvents, EVENT_ACTIVE);
+            }
+            lastState = state;
+        }
+
+        vTaskDelay(pdMS_TO_TICKS(500));
     }
 }
