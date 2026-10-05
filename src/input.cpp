@@ -3,36 +3,43 @@
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "driver/gpio.h"
 
 static const char *TAG = "INPUT";
 
-// Simulated mode cycling: advance one page every 5 s.
-#define MODE_INTERVAL_MS 5000
+#define ENC_CLK  GPIO_NUM_32
+#define ENC_DT   GPIO_NUM_33
+#define ENC_SW   GPIO_NUM_25
 
-void input_init() {
-    // No GPIO setup — input is simulated.
+static int last_clk = 1;
+
+void input_init(void) {
+    gpio_config_t cfg = {};
+    cfg.pin_bit_mask = (1ULL << ENC_CLK) | (1ULL << ENC_DT) | (1ULL << ENC_SW);
+    cfg.mode         = GPIO_MODE_INPUT;
+    cfg.pull_up_en   = GPIO_PULLUP_ENABLE;
+    cfg.pull_down_en = GPIO_PULLDOWN_DISABLE;
+    cfg.intr_type    = GPIO_INTR_DISABLE;
+    gpio_config(&cfg);
+    ESP_LOGI(TAG, "Encoder inputs initialized");
 }
 
 void input_task(void *pvParameters) {
-    static DisplayMode mode = DisplayMode::TEMPERATURE;
-
-    xQueueOverwrite(modeQueue, &mode);
-    ESP_LOGI(TAG, "InputTask started (simulated mode cycling, %d ms period)", MODE_INTERVAL_MS);
-
-    TickType_t lastWake = xTaskGetTickCount();
-    int cycle = 0;
-
     for (;;) {
-        vTaskDelayUntil(&lastWake, pdMS_TO_TICKS(MODE_INTERVAL_MS));
+        int clk = gpio_get_level(ENC_CLK);
+        if (clk != last_clk && clk == 0) {
+            int dt = gpio_get_level(ENC_DT);
+            DisplayMode current = DisplayMode::TEMPERATURE;
+            xQueuePeek(modeQueue, &current, 0);
 
-        cycle++;
-        if ((cycle % 4) == 0) {
-            mode = previousDisplayMode(mode);
-            ESP_LOGI(TAG, "CCW -> mode %d", (int)mode);
-        } else {
-            mode = nextDisplayMode(mode);
-            ESP_LOGI(TAG, "CW -> mode %d", (int)mode);
+            DisplayMode next = (dt == 0)
+                ? nextDisplayMode(current)
+                : previousDisplayMode(current);
+
+            xQueueOverwrite(modeQueue, &next);
+            ESP_LOGI(TAG, "ENCODER: %s", (dt == 0) ? "CW -> next" : "CCW -> prev");
         }
-        xQueueOverwrite(modeQueue, &mode);
+        last_clk = clk;
+        vTaskDelay(pdMS_TO_TICKS(10));
     }
 }

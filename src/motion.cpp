@@ -3,40 +3,48 @@
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "driver/gpio.h"
 
 static const char *TAG = "MOTION";
 
-// Simulated motion pattern: 3 s of motion, 17 s idle, repeating.
-#define MOTION_CYCLE_TICKS   400   // 400 * 50 ms = 20 s
-#define MOTION_ACTIVE_TICKS   60   // 60 * 50 ms = 3 s of motion
+#define MOTION_GPIO GPIO_NUM_27
 
-void motion_init() {
+static TickType_t lastMotionTick = 0;
+
+void motion_init(void) {
+    gpio_config_t cfg = {};
+    cfg.pin_bit_mask = (1ULL << MOTION_GPIO);
+    cfg.mode = GPIO_MODE_INPUT;
+    cfg.pull_up_en = GPIO_PULLUP_ENABLE;
+    cfg.pull_down_en = GPIO_PULLDOWN_DISABLE;
+    cfg.intr_type = GPIO_INTR_DISABLE;
+    gpio_config(&cfg);
+
     lastMotionTick = xTaskGetTickCount();
+    ESP_LOGI(TAG, "Motion initialized on GPIO 27");
+}
+
+TickType_t motion_get_last_tick(void) {
+    return lastMotionTick;
 }
 
 void motion_task(void *pvParameters) {
-    TickType_t lastWake = xTaskGetTickCount();
-    int cycle = 0;
-
-    ESP_LOGI(TAG, "MotionTask started (simulated motion pattern, 20 s cycle)");
+    bool lastDetected = false;
 
     for (;;) {
-        cycle = (cycle + 1) % MOTION_CYCLE_TICKS;
-        bool motion = (cycle < MOTION_ACTIVE_TICKS);
+        int level = gpio_get_level(MOTION_GPIO);
+        bool detected = (level == 1);
 
-        if (motion) {
+        if (detected && !lastDetected) {
             lastMotionTick = xTaskGetTickCount();
-            if (cycle == 1) {
-                xEventGroupSetBits(systemEvents, EVENT_MOTION);
-                ESP_LOGI(TAG, "Motion detected");
-            }
-        } else {
-            if (cycle == MOTION_ACTIVE_TICKS) {
-                xEventGroupClearBits(systemEvents, EVENT_MOTION);
-                ESP_LOGI(TAG, "Motion cleared");
-            }
+            xEventGroupSetBits(systemEvents, EVENT_MOTION);
+            ESP_LOGI(TAG, "Motion detected");
+        } else if (!detected && lastDetected) {
+            xEventGroupClearBits(systemEvents, EVENT_MOTION);
+            ESP_LOGI(TAG, "Motion cleared");
         }
 
-        vTaskDelayUntil(&lastWake, pdMS_TO_TICKS(50));
+        lastDetected = detected;
+        vTaskDelay(pdMS_TO_TICKS(50));
     }
 }

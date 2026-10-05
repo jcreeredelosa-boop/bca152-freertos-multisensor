@@ -107,6 +107,8 @@ void display_task(void *pvParameters) {
     SensorData last = {};
     bool haveData = false;
 
+    TickType_t lastPrintTime = 0;
+
     for (;;) {
         SensorData incoming;
         if (xQueueReceive(sensorQueue, &incoming, pdMS_TO_TICKS(100)) == pdTRUE) {
@@ -116,6 +118,14 @@ void display_task(void *pvParameters) {
         DisplayMode newMode;
         if (xQueueReceive(modeQueue, &newMode, 0) == pdTRUE) {
             mode = newMode;
+        }
+
+        TickType_t now = xTaskGetTickCount();
+        if (now - lastPrintTime >= pdMS_TO_TICKS(1000)) {
+            printf("[DisplayTask] Temp: %.1f C, Humidity: %.1f %%, Light: %d%%\n",
+                   last.temperature, last.humidity, last.lightLevel);
+            fflush(stdout);
+            lastPrintTime = now;
         }
 
         EventBits_t bits = xEventGroupGetBits(systemEvents);
