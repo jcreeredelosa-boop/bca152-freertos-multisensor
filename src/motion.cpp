@@ -9,8 +9,6 @@ static const char *TAG = "MOTION";
 
 #define MOTION_GPIO GPIO_NUM_27
 
-static TickType_t lastMotionTick = 0;
-
 void motion_init(void) {
     gpio_config_t cfg = {};
     cfg.pin_bit_mask = (1ULL << MOTION_GPIO);
@@ -24,16 +22,12 @@ void motion_init(void) {
     ESP_LOGI(TAG, "Motion initialized on GPIO 27");
 }
 
-TickType_t motion_get_last_tick(void) {
-    return lastMotionTick;
-}
-
 void motion_task(void *pvParameters) {
     bool lastDetected = false;
 
     for (;;) {
         int level = gpio_get_level(MOTION_GPIO);
-        bool detected = (level == 1);
+        bool detected = (level == 0);
 
         if (detected && !lastDetected) {
             lastMotionTick = xTaskGetTickCount();
